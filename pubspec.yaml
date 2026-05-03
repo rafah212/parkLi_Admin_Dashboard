@@ -30,9 +30,13 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  supabase_flutter: ^2.0.0 # قاعدة البيانات اللي بربطها مع التطبيق
-  P
-
+  cupertion_icons: ^1.0.8
+ # قاعدة البيانات اللي بربطها مع التطبيق
+  supabase_flutter: ^2.0.0 
+  # لإضافة خرائط جوجل للتطبيق
+  google_maps_flutter: ^2.5.0 
+  # لإضافة دعم خرائط جوجل على الويب
+  google_maps_flutter_web: ^0.6.2+1 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.8
