@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
-import 'dashboard.dart'; // تأكدي من استيراد ملف الداشبورد
+//import 'package:supabase_flutter/supabase_flutter.dart';
+import 'dashboard.dart'; 
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
