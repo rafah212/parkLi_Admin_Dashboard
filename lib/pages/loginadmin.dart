@@ -13,10 +13,13 @@ class _LoginPageState extends State<LoginPage> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   
-  // قائمة الإيميلات المصرح لها بالدخول كأدمن
+  //  الإيميلات المصرح لها بالدخول كأدمن
   final List<String> _authorizedAdmins = [
     'asailfaleh@gmail.com', 
-    'rafahsaljabri@gmail.com', 
+    'rafahsaljabri@gmail.com',
+    'mona.alzunidi17@gmail.com',
+    'ghd22344@gmail.com',
+    'norah.n.mu@gmail.com'
   ];
 
   Future<void> _login() async {
@@ -34,7 +37,6 @@ class _LoginPageState extends State<LoginPage> {
     }
 
     if (password == "ParkLi2026") { 
-      // تحديد الاسم بناءً على الإيميل لإرساله للداشبورد
       String adminName = email == 'rafahsaljabri@gmail.com' ? 'Rafah' : 'Asayl';
       
       Navigator.pushReplacement(

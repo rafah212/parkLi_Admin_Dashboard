@@ -15,7 +15,6 @@ class _NotificationsPageState extends State<NotificationsPage> {
   final TextEditingController _bodyController = TextEditingController();
   String _selectedType = 'general'; 
 
-  // دالة لإرسال إشعار جديد وحفظه في سوبابيس
   Future<void> _sendNotification() async {
     if (_titleController.text.isEmpty || _bodyController.text.isEmpty) return;
 

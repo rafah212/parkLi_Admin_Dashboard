@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../app_data.dart';
-import '../main.dart'; // استدعاء المين لتحديث الثيم العام
+import '../main.dart'; 
 import 'package:url_launcher/url_launcher.dart'; 
 
 class SettingsPage extends StatefulWidget {
@@ -15,7 +15,7 @@ class _SettingsPageState extends State<SettingsPage> {
   final supabase = Supabase.instance.client;
   String adminName = "Rafah Saleh";
 
-  // دالة لفتح تطبيق الإيميل
+
   Future<void> _sendEmail(String email) async {
     final Uri params = Uri(
       scheme: 'mailto',
@@ -86,7 +86,8 @@ class _SettingsPageState extends State<SettingsPage> {
                 setState(() {
                   AppData.isDarkMode = val;
                 });
-                // تحديث الثيم في تطبيق المين كاملاً
+
+
                 MyApp.of(context)?.changeTheme();
               },
             ),
@@ -117,7 +118,7 @@ class _SettingsPageState extends State<SettingsPage> {
     );
   }
 
-  // --- Dialogs المعدلة لدعم الثيم ---
+
 
   void _showEditNameDialog(Color cardColor, Color textColor) {
     TextEditingController _nameController = TextEditingController(text: adminName);
@@ -158,7 +159,7 @@ class _SettingsPageState extends State<SettingsPage> {
               _buildEmailTile("Asail Faleh", "asailfaleh@gmail.com", textColor),
               _buildEmailTile("Mona Alzunidi", "mona.alzunidi17@gmail.com", textColor),
               _buildEmailTile("Ghada", "ghd22344@gmail.com", textColor),
-              _buildEmailTile("Norah", "n.mu@gmail.com", textColor), // الإيميل الخامس
+              _buildEmailTile("Norah", "n.mu@gmail.com", textColor), 
             ],
           ),
         ),

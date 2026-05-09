@@ -3,11 +3,10 @@ import 'main.dart';
 
 
 class  AppData{
-  // متغير التحكم في الداشبورد (الوضع الداكن)
+  // Dark mode
   static bool isDarkMode = false;
 
 
-  // ألوان مخصصة للثيم الداكن والفتح
   static Color getPrimaryColor() {
     return const Color(0xFF195A64);
   }

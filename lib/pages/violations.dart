@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import '../app_data.dart'; // تأكدي من المسار الصحيح
+import '../app_data.dart'; 
 
 class ViolationsPage extends StatefulWidget {
   const ViolationsPage({super.key});
@@ -13,11 +13,11 @@ class _ViolationsPageState extends State<ViolationsPage> {
   final supabase = Supabase.instance.client;
   bool _isProcessing = false;
 
-  // دالة إصدار المخالفة وإرسال الإشعار
+
   Future<void> _issueViolation(String userId, String plateInfo, String type, double price) async {
     setState(() => _isProcessing = true);
     try {
-      // 1. تسجيل المخالفة
+    // اسجل مخالفة للي مسجل سيارته
       await supabase.from('violations').insert({
         'user_id': userId,
         'violation_type': type,
@@ -25,7 +25,7 @@ class _ViolationsPageState extends State<ViolationsPage> {
         'status': 'unpaid',
       });
 
-      // 2. إرسال الإشعار للمستخدم
+      // ارسل اشعار للمستخدم
       await supabase.from('notifications').insert({
         'user_id': userId,
         'title': 'New Violation Issued ⚠️',
@@ -53,7 +53,6 @@ class _ViolationsPageState extends State<ViolationsPage> {
 
   @override
   Widget build(BuildContext context) {
-    // تعريف الألوان بناءً على حالة الدارك مود من AppData
     Color bgColor = AppData.isDarkMode ? const Color(0xFF121212) : const Color(0xFFF8F9FD);
     Color cardColor = AppData.isDarkMode ? const Color(0xFF1E1E1E) : Colors.white;
     Color textColor = AppData.isDarkMode ? Colors.white : const Color(0xFF195A64);
@@ -133,7 +132,7 @@ class _ViolationsPageState extends State<ViolationsPage> {
                   child: ElevatedButton(
                     onPressed: () => _issueViolation(car['user_id'], plateInfo, "Overtime Parking", 30),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFFC8D8C3), // الأخضر الهادئ لـ RA
+                      backgroundColor: const Color(0xFFC8D8C3), 
                       foregroundColor: const Color(0xFF195A64),
                       padding: const EdgeInsets.symmetric(vertical: 12),
                       elevation: 0,
@@ -147,7 +146,7 @@ class _ViolationsPageState extends State<ViolationsPage> {
                   child: ElevatedButton(
                     onPressed: () => _issueViolation(car['user_id'], plateInfo, "Incorrect Parking", 70),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF195A64), // البورغندي/الأزرق المعتمد لـ RS
+                      backgroundColor: const Color(0xFF195A64),
                       foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(vertical: 12),
                       elevation: 0,

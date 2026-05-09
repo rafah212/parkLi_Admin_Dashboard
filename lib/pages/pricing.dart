@@ -12,7 +12,7 @@ class PricingPage extends StatefulWidget {
 class _PricingPageState extends State<PricingPage> {
   final supabase = Supabase.instance.client;
 
-  // دالة لتحديث السعر في سوبابيس
+  
   Future<void> _updatePrice(String id, String newPrice) async {
     try {
       await supabase.from('places').update({'price_label': newPrice}).match({'id': id}); //
@@ -32,7 +32,6 @@ class _PricingPageState extends State<PricingPage> {
 
   @override
   Widget build(BuildContext context) {
-    // تعريف الألوان بناءً على حالة الدارك مود
     Color bgColor = AppData.isDarkMode ? const Color(0xFF121212) : const Color(0xFFF8F9FD);
     Color cardColor = AppData.isDarkMode ? const Color(0xFF1E1E1E) : Colors.white;
     Color textColor = AppData.isDarkMode ? Colors.white : const Color(0xFF195A64);
@@ -47,7 +46,6 @@ class _PricingPageState extends State<PricingPage> {
         centerTitle: true,
       ),
       body: StreamBuilder<List<Map<String, dynamic>>>(
-        // الربط مع نفس جدول الأماكن ليتم التحديث فورياً عند الإضافة أو الحذف
         stream: supabase.from('places').stream(primaryKey: ['id']),
         builder: (context, snapshot) {
           if (snapshot.hasError) return Center(child: Text("Error: ${snapshot.error}", style: TextStyle(color: textColor)));

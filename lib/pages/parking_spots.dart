@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import '../app_data.dart'; // استدعاء ملف AppData للثيم
+import '../app_data.dart'; 
 
 class ParkingSpotsPage extends StatefulWidget {
   const ParkingSpotsPage({super.key});
@@ -12,7 +12,7 @@ class ParkingSpotsPage extends StatefulWidget {
 class _ParkingSpotsPageState extends State<ParkingSpotsPage> {
   final SupabaseClient supabase = Supabase.instance.client;
 
-  // دالة لتحديد لون الموقف بناءً على حالته (مع مراعاة الدارك مود للألوان الفاتحة)
+ 
   Color _getStatusColor(String status) {
     switch (status) {
       case 'available': 
@@ -28,7 +28,7 @@ class _ParkingSpotsPageState extends State<ParkingSpotsPage> {
 
   @override
   Widget build(BuildContext context) {
-    // تعريف ألوان الصفحة بناءً على الثيم
+   
     Color bgColor = AppData.isDarkMode ? const Color(0xFF121212) : const Color(0xFFF8F9FD);
     Color appBarColor = AppData.isDarkMode ? const Color(0xFF1E1E1E) : Colors.white;
     Color textColor = AppData.isDarkMode ? Colors.white : const Color(0xFF195A64);
@@ -64,7 +64,7 @@ class _ParkingSpotsPageState extends State<ParkingSpotsPage> {
                 decoration: BoxDecoration(
                   color: _getStatusColor(spot['status']),
                   borderRadius: BorderRadius.circular(10),
-                  // تغيير لون الحدود ليتناسب مع الخلفية الداكنة
+                 
                   border: Border.all(color: AppData.isDarkMode ? Colors.black26 : Colors.white, width: 2),
                   boxShadow: [
                     BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 4)
@@ -74,7 +74,6 @@ class _ParkingSpotsPageState extends State<ParkingSpotsPage> {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      // لون الأيقونة يتغير ليكون واضحاً في الدارك مود
                       Icon(Icons.directions_car, size: 20, color: AppData.isDarkMode ? Colors.white70 : const Color(0xFF195A64)),
                       const SizedBox(height: 4),
                       Text(

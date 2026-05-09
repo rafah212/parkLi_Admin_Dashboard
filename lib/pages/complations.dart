@@ -13,7 +13,6 @@ class ComplaintsPage extends StatefulWidget {
 class _ComplaintsPageState extends State<ComplaintsPage> {
   final SupabaseClient supabase = Supabase.instance.client;
 
-  // تحديث الحالة وإرسال إشعار لحظي للمستخدم
   Future<void> _updateStatusAndNotify(Map<String, dynamic> item, String newStatus) async {
     try {
       await supabase
@@ -51,7 +50,6 @@ class _ComplaintsPageState extends State<ComplaintsPage> {
 
   @override
   Widget build(BuildContext context) {
-    // تعريف ألوان الدارك مود
     Color bgColor = AppData.isDarkMode ? const Color(0xFF121212) : const Color(0xFFF8F9FD);
     Color cardColor = AppData.isDarkMode ? const Color(0xFF1E1E1E) : Colors.white;
     Color textColor = AppData.isDarkMode ? Colors.white : const Color(0xFF195A64);
@@ -113,7 +111,7 @@ class _ComplaintsPageState extends State<ComplaintsPage> {
     bool isSolved = item['status'] == 'solved';
 
     return Card(
-      color: cardColor, // دعم الدارك مود للكرت
+      color: cardColor, 
       margin: const EdgeInsets.only(bottom: 16),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
       child: Theme(

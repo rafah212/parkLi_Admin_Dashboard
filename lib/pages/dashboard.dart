@@ -25,6 +25,7 @@ class DashboardPage extends StatefulWidget {
 class _DashboardPageState extends State<DashboardPage> {
   String _activeRoute = 'Dashboard';
   final Color primaryBlue = const Color(0xFF195A64);
+  final supabase = Supabase.instance.client;
 
   @override
   Widget build(BuildContext context) {
@@ -84,10 +85,10 @@ class _DashboardPageState extends State<DashboardPage> {
             _sidebarItem(Icons.event_available_outlined, "Reservations", textColor),
             _sidebarItem(Icons.assessment_outlined, "Reports", textColor),
             _sidebarItem(Icons.gavel_outlined, "Violations", textColor),
+            _sidebarItem(Icons.chat_bubble_outline, "Complations", textColor),
             _sidebarItem(Icons.settings_outlined, "Setting", textColor),
             const SizedBox(height: 40),
             _sidebarItem(Icons.logout, "Logout", Colors.red),
-            _sidebarItem(Icons.chat_bubble_outline, "Complations", textColor), 
             const SizedBox(height: 20),
           ],
         ),
@@ -102,8 +103,10 @@ class _DashboardPageState extends State<DashboardPage> {
       title: Text(title, style: TextStyle(color: isSelected ? primaryBlue : defaultTextColor, fontWeight: isSelected ? FontWeight.bold : FontWeight.normal, fontSize: 14)),
       onTap: () async {
         if (title == "Logout") {
-          await Supabase.instance.client.auth.signOut();
-          if (mounted) Navigator.pushNamedAndRemoveUntil(context, '/loginadmin', (route) => false);
+          await supabase.auth.signOut();
+          if (mounted) {
+            Navigator.pushNamedAndRemoveUntil(context, '/loginadmin', (route) => false);
+          }
         } else {
           setState(() => _activeRoute = title);
         }
@@ -123,29 +126,44 @@ class _DashboardPageState extends State<DashboardPage> {
           _buildStatCards(),
           const SizedBox(height: 24),
           _buildMapSection(),
-          const SizedBox(height: 24),
-          _buildTablesSection(),
         ],
       ),
     );
   }
 
   Widget _buildStatCards() {
-    final supabase = Supabase.instance.client;
-    return StreamBuilder(
-      stream: supabase.from('bookings').stream(primaryKey: ['id']),
-      builder: (context, snapshot) {
-        int total = snapshot.hasData ? snapshot.data!.length : 0;
-        int active = snapshot.hasData ? snapshot.data!.where((b) => b['status'] == 'active').length : 0;
-        int completed = snapshot.hasData ? snapshot.data!.where((b) => b['status'] == 'completed').length : 0;
+    return FutureBuilder<List<int>>(
+      future: Future.wait([
+        supabase.from('profiles').select('*').count(CountOption.exact).then((res) => res.count ?? 0),
+        supabase.from('complaints').select('*').count(CountOption.exact).then((res) => res.count ?? 0),
+        supabase.from('violations').select('*').count(CountOption.exact).then((res) => res.count ?? 0),
+        supabase.from('bookings').select('*').count(CountOption.exact).then((res) => res.count ?? 0),
+      ]),
+      builder: (context, AsyncSnapshot<List<int>> snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+           return const Row(
+             mainAxisAlignment: MainAxisAlignment.spaceBetween,
+             children: [
+               _StatCard(title: "Loading...", value: "-"),
+               _StatCard(title: "Loading...", value: "-"),
+               _StatCard(title: "Loading...", value: "-"),
+               _StatCard(title: "Loading...", value: "-"),
+             ],
+           );
+        }
+
+        String users = snapshot.hasData ? snapshot.data![0].toString() : "0";
+        String complaints = snapshot.hasData ? snapshot.data![1].toString() : "0";
+        String violations = snapshot.hasData ? snapshot.data![2].toString() : "0";
+        String bookings = snapshot.hasData ? snapshot.data![3].toString() : "0";
 
         return Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            _StatCard(title: "Active Bookings", value: "$active"),
-            const _StatCard(title: "Open Complaints", value: "2"),
-            _StatCard(title: "Completed", value: "$completed"),
-            _StatCard(title: "Total Bookings", value: "$total"),
+            _StatCard(title: "Total Users", value: users),
+            _StatCard(title: "Complaints", value: complaints),
+            _StatCard(title: "Violations", value: violations),
+            _StatCard(title: "Total Bookings", value: bookings),
           ],
         );
       },
@@ -155,46 +173,42 @@ class _DashboardPageState extends State<DashboardPage> {
   Widget _buildMapSection() {
     Color cardColor = AppData.isDarkMode ? const Color(0xFF1E1E1E) : Colors.white;
     return Container(
-      height: 380,
+      height: 500, 
       decoration: BoxDecoration(color: cardColor, borderRadius: BorderRadius.circular(15)),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(15),
-        child: FlutterMap(
-          options: const MapOptions(initialCenter: LatLng(26.0827, 43.9750), initialZoom: 13),
-          children: [
-            TileLayer(urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png'),
-            MarkerLayer(markers: [
-              Marker(point: const LatLng(26.0827, 43.9750), width: 45, height: 45, child: Icon(Icons.location_on, color: primaryBlue, size: 45)),
-            ]),
-          ],
+        child: StreamBuilder(
+          stream: supabase.from('places').stream(primaryKey: ['id']),
+          builder: (context, snapshot) {
+            List<Marker> markers = [];
+            if (snapshot.hasData) {
+              for (var place in snapshot.data!) {
+                markers.add(
+                  Marker(
+                    point: LatLng(place['lat'], place['lng']),
+                    width: 50,
+                    height: 50,
+                    child: Tooltip(
+                      message: place['name'],
+                      child: Icon(Icons.location_on, color: primaryBlue, size: 40),
+                    ),
+                  ),
+                );
+              }
+            }
+
+            return FlutterMap(
+              options: const MapOptions(
+                initialCenter: LatLng(26.0827, 43.9750), 
+                initialZoom: 13,
+              ),
+              children: [
+                TileLayer(urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png'),
+                MarkerLayer(markers: markers),
+              ],
+            );
+          },
         ),
-      ),
-    );
-  }
-
-  Widget _buildTablesSection() {
-    return Row(
-      children: [
-        Expanded(child: _buildSimpleTable("Live Violations")),
-        const SizedBox(width: 20),
-        Expanded(child: _buildSimpleTable("Recent Complaints")),
-      ],
-    );
-  }
-
-  Widget _buildSimpleTable(String title) {
-    Color cardColor = AppData.isDarkMode ? const Color(0xFF1E1E1E) : Colors.white;
-    Color textColor = AppData.isDarkMode ? Colors.white : Colors.black;
-    return Container(
-      padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(color: cardColor, borderRadius: BorderRadius.circular(15)),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(title, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: textColor)),
-          const Divider(height: 30),
-          const SizedBox(height: 120, child: Center(child: Text("Fetching live data...", style: TextStyle(color: Colors.grey)))),
-        ],
       ),
     );
   }
