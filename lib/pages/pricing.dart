@@ -12,7 +12,7 @@ class PricingPage extends StatefulWidget {
 class _PricingPageState extends State<PricingPage> {
   final supabase = Supabase.instance.client;
 
-  // دالة تحديث السعر حياً بداخل قاعدة البيانات للموقع المحدد
+  //  تحديث السعر بداخل قاعدة البيانات للموقع المحدد
   Future<void> _updatePrice(String id, String newPrice) async {
     try {
       await supabase.from('places').update({'price_label': newPrice}).match({'id': id}); 
@@ -88,7 +88,7 @@ class _PricingPageState extends State<PricingPage> {
                     final place = places[index];
                     String rawPrice = place['price_label'] ?? 'FREE';
                     
-                    // تحليل ذكي لنوع التسعيرة لعرض شارات تصنيفية أنيقة للأدمن (حكومي/ثابت، بالساعة، أو مجاني)
+                    // تحليل لنوع التسعيرة يعرض  تصنيف (حكومي/ثابت، بالساعة، أو مجاني)
                     String priceTypeLabel = "Hourly Rate";
                     Color typeColor = const Color(0xFF195A64);
 
@@ -100,7 +100,7 @@ class _PricingPageState extends State<PricingPage> {
                       typeColor = Colors.purple;
                     }
 
-                    // تنسيق قيم الأسعار حياً لتطابق أرقام لغة الواجهة المختارة
+                    //تنسيق الأسعار لتطابق للغة اللي اختارها الادمن
                     String displayPrice = AppData.formatNumbers(rawPrice);
 
                     return Card(
@@ -184,7 +184,7 @@ class _PricingPageState extends State<PricingPage> {
                         style: const TextStyle(color: Colors.grey, fontSize: 12, fontWeight: FontWeight.bold),
                       ),
                       const SizedBox(height: 8),
-                      // أزرار سريعة ومثالية تتيح للأدمن تعيين القوالب الذكية بضغطة زر واحدة!
+                      // الادمن يقدر يخار منهم
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [

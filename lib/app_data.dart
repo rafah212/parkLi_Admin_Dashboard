@@ -4,7 +4,7 @@ class AppData {
   // الدارك مود
   static bool isDarkMode = false;
 
-  // أول ما اغير اللغة تتغير الصفحات كلهاي عني كأنها تعلمها
+  // أول ما اغير اللغة تتغير الصفحات كلها كأنها تعلمها
   static final ValueNotifier<bool> languageNotifier = ValueNotifier<bool>(false); // false = إنجليزي, true = عربي
 
   // يشوف هل اللغة اللي الحين عربية او لا؟
@@ -19,7 +19,7 @@ class AppData {
     return isDarkMode ? const Color(0xFF121212) : const Color(0xFFF8F9FD);
   }
 
-  // 4. القاموس الذكي للأدمن (يترجم الكلمات والصفحات تلقائياً)
+  // هنا كتبتهاغ لأن بعض الكلمات مكرره فا لو بهذا الملف افضل من كل ملف فيه ترجمه القاموس للأدمن (يترجم الكلمات والصفحات تلقائياً)
   static final Map<String, String> _localizedValues = {
     // قائمة السايدبار والصفحات
     'Dashboard': 'لوحة التحكم',
@@ -35,7 +35,7 @@ class AppData {
     'Logout': 'تسجيل الخروج',
     'Welcome': 'مرحباً بك',
 
-    // صفحة مراقبة المواقف الحية
+    // صفحة المواقف 
     "Real-time Parking Spots": "مراقبة مواقف السيارات الحية",
     "Select Parking Location": "اختر موقع المواقف المراد عرضه",
     "No parking spots assigned to this location.": "لا توجد مواقف مضافة لهذا الموقع بعد.",
@@ -178,7 +178,7 @@ class AppData {
     return key;
   }
 
-  // 6. دالة سحرية لتحويل الأرقام الإنجليزية إلى أرقام عربية (١، ٢، ٣) إذا تحولت اللغة لعربي
+  // لتحويل الأرقام الإنجليزية إلى أرقام عربية (١، ٢، ٣) 
   static String formatNumbers(String input) {
     if (!isArabic) return input; // لو إنجليزي يرجع الرقم عادي (1, 2, 3)
     

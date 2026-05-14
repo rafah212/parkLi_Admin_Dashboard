@@ -13,11 +13,11 @@ class _ViolationsPageState extends State<ViolationsPage> {
   final supabase = Supabase.instance.client;
   bool _isProcessing = false;
 
-  // دالة إصدار المخالفات وحفظها وإخطار جوال المستخدم بالمفتاح المشفر المترجم تلقائياً
+  //  إصدار المخالفات وحفظها و اشعار جوال المستخدم بالمفتاح المشفر المترجم تلقائياً
   Future<void> _issueViolation(String userId, String plateInfo, String type, double price) async {
     setState(() => _isProcessing = true);
     try {
-      // 1. تسجيل المخالفة بالقيم الجديدة النشطة في قاعدة البيانات
+      // تسجيل المخالفة بالقيم الجديدة في قاعدة البيانات
       await supabase.from('violations').insert({
         'user_id': userId,
         'violation_type': type,
@@ -25,10 +25,10 @@ class _ViolationsPageState extends State<ViolationsPage> {
         'status': 'unpaid',
       });
 
-      // 2. إرسال المفتاح الكودي المتكامل ليتعرف عليه الجوال ويترجمه بلغة صاحب الجوال حياً
+      //  إرسال المفتاح ليتعرف عليه الجوال ويترجمه بلغة التطبيق اللي اختارها المستخدم
       await supabase.from('notifications').insert({
         'user_id': userId,
-        'title': 'violation_issued', // المفتاح الكودي المتزامن
+        'title': 'violation_issued', // المفتاح الكودي 
         'body': 'You have a new violation recorded ($type).', 
         'type': 'violation',
         'is_read': false,
@@ -122,7 +122,7 @@ class _ViolationsPageState extends State<ViolationsPage> {
     String plateInfo = "${car['plate_letters'] ?? ''} ${car['plate_numbers'] ?? ''}";
     String displayPlate = AppData.formatNumbers(plateInfo);
     
-    // قيم وعروض الأزرار المحدثة حياً بالعملة الوطنية والأرقام المتزامنة
+    // قيم وعروض الأزرار المحدثة بالعملة الوطنية والأرقام 
     String fixedPriceLabel = AppData.formatNumbers("15");
 
     return Card(
@@ -154,7 +154,7 @@ class _ViolationsPageState extends State<ViolationsPage> {
             const SizedBox(height: 12),
             Row(
               children: [
-                // 1. زر حساب مخالفة الوقت الإضافي تصاعدياً بطلب إدخال الساعات يدوياً
+                //  زر حساب مخالفة الوقت الإضافي تصاعدياً بطلب إدخال الساعات يدوياً
                 Expanded(
                   child: ElevatedButton(
                     onPressed: () => _showOvertimeCalculationDialog(car['user_id'], plateInfo, cardColor, textColor),
@@ -172,7 +172,7 @@ class _ViolationsPageState extends State<ViolationsPage> {
                   ),
                 ),
                 const SizedBox(width: 10),
-                // 2. زر تسجيل مخالفة تغيير الموقف الثابتة بقيمة 15 ريال
+                //  زر تسجيل مخالفة تغيير الموقف الثابتة بقيمة 15 ريال
                 Expanded(
                   child: ElevatedButton(
                     onPressed: () => _issueViolation(car['user_id'], plateInfo, "Incorrect Parking", 15),
@@ -197,7 +197,7 @@ class _ViolationsPageState extends State<ViolationsPage> {
     );
   }
 
-  // نافذة تفاعلية تطلب من الأدمن عدد الساعات لحساب الحسبة التصاعدية حياً (ساعة = 5 ريال)
+  // نافذة تطلب من الأدمن عدد الساعات لحساب الحسبة (ساعة = 5 ريال)
   void _showOvertimeCalculationDialog(String userId, String plateInfo, Color cardColor, Color textColor) {
     final TextEditingController hoursController = TextEditingController();
     showDialog(
@@ -240,7 +240,7 @@ class _ViolationsPageState extends State<ViolationsPage> {
                   ElevatedButton(
                     onPressed: () {
                       int hours = int.tryParse(hoursController.text) ?? 1;
-                      double calculatedAmount = hours * 5.0; // حسبتك المعتمدة: ساعة إضافية = 5 ريال
+                      double calculatedAmount = hours * 5.0; //  ساعة إضافية = 5 ريال
                       Navigator.pop(context);
                       _issueViolation(userId, plateInfo, "Overtime Parking (${hours}h)", calculatedAmount);
                     },

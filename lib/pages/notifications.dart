@@ -15,18 +15,18 @@ class _NotificationsPageState extends State<NotificationsPage> {
   final SupabaseClient supabase = Supabase.instance.client;
   final TextEditingController _bodyController = TextEditingController();
   
-  // jv[lm hghauhv ugn psf hggyi hggd dojhvih hglsjo]l fhgj'fdr
+  // اللي ترجم الاشعار على حسب اللغة اللي يختارها المستخدم بالتطبيق
   String _selectedType = 'general_alert'; 
-  String? _selectedUserId; // القيمة NULL تعني تلقائياً (إرسال للجميع)
-  List<Map<String, dynamic>> _usersList = []; // لقائمة اختيار المستخدمين
+  String? _selectedUserId; // القيمة NULL يعني تلقائي يرسل لكل المستخدمين
+  List<Map<String, dynamic>> _usersList = []; //  اختيار المستخدمين
 
   @override
   void initState() {
     super.initState();
-    _fetchUsers(); // جلب قائمة المستخدمين من سوبابيس حياً عند فتح الصفحة
+    _fetchUsers(); // يجيب قائمة المستخدمين من  قاعدة البيانات سوبابيس عند فتح الصفحة
   }
 
-  // دالة جلب المستخدمين لتغذية قائمة الـ Dropdown
+  // جلب المستخدمين Dropdown
   Future<void> _fetchUsers() async {
     try {
       final data = await supabase.from('profiles').select('id, name, email');
@@ -38,19 +38,19 @@ class _NotificationsPageState extends State<NotificationsPage> {
     }
   }
 
-  // دالة الإرسال الذكية لـ سوبابيس
+  // دالة الإرسال لقاعدة الباينات سوبابيس
   Future<void> _sendNotification() async {
     if (_bodyController.text.isEmpty) return;
 
-    // تحديد عنوان ثابت كمفتاح بناءً على النوع ليترجمه الجوال حياً
+    // تحديد عنوان ثابت كمفتاح بناءً على النوع ليترجمه الجوال 
     String titleKey = _selectedType; 
 
     try {
       await supabase.from('notifications').insert({
-        'title': titleKey, // يرسل المفتاح الكودي (مثال: violation_alert) والجوال يترجمه
+        'title': titleKey, // يرسل المفتاح الكودي والجوال يترجمه
         'body': _bodyController.text, // تفاصيل إضافية أو يترجم بالكامل بالجوال
         'type': _selectedType,
-        'user_id': _selectedUserId, // إذا كان null يروح للكل، وإذا اخترتي يوزر يروح له هو بس!
+        'user_id': _selectedUserId, // إذا كان null يروح للكل، وإذا اخترتي مستخدم يروح له هو بس
         'is_read': false,
         'created_at': DateTime.now().toIso8601String(),
       });
@@ -178,7 +178,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
           builder: (context, isArabic, child) {
             return Directionality(
               textDirection: isArabic ? ui.TextDirection.rtl : ui.TextDirection.ltr,
-              child: StatefulBuilder( // لتحديث الـ Dropdowns داخل الدايلوج حياً
+              child: StatefulBuilder( // لتحديث  Dropdowns داخل الدايلوج 
                 builder: (context, setDialogState) {
                   return AlertDialog(
                     backgroundColor: cardColor,
@@ -187,7 +187,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          // 1. قائمة اختيار المستهدف (مستخدم معين أو إرسال للكل)
+                          //قائمة لختيار (مستخدم معين أو إرسال للكل)
                           DropdownButtonFormField<String?>(
                             value: _selectedUserId,
                             dropdownColor: cardColor,
@@ -214,7 +214,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
                           ),
                           const SizedBox(height: 15),
                           
-                          // 2. قائمة اختيار نوع ومفتاح الإشعار للترجمة الحية بالجوال
+                          // قائمة اختيار نوع ومفتاح الإشعار للترجمة بالجوال
                           DropdownButtonFormField<String>(
                             value: _selectedType,
                             dropdownColor: cardColor,
@@ -235,7 +235,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
                           ),
                           const SizedBox(height: 15),
 
-                          // 3. حقل الملاحظات أو نص الرسالة الإضافي
+                          //  الملاحظات أو نص الرسالة الإضافي
                           TextField(
                             controller: _bodyController, 
                             style: TextStyle(color: textColor),

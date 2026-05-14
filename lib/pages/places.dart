@@ -25,7 +25,7 @@ class _PlacesPageState extends State<PlacesPage> {
     return (response as List).length;
   }
 
-  // دالة الحذف الذكية مع عد تنازلي وتدعم اللغتين والأرقام حياً بالـ SnackBar
+  // دالة الحذف مع عد تنازلي خليته 5 ثواني وتدعم اللغتين  
   void _confirmDelete(String placeId, String placeName) async {
     int spotsCount = await _getSpotsCount(placeId);
     bool isCancelled = false;
@@ -125,7 +125,7 @@ class _PlacesPageState extends State<PlacesPage> {
                   itemBuilder: (context, index) {
                     final place = places[index];
                     
-                    // دعم تنسيق السعر حياً للأرقام العربية إذا تم تحويل الواجهة
+                    // الارقام على حسب اللغة اللي اخترتها
                     String displayPrice = AppData.formatNumbers(place['price_label'] ?? 'N/A');
 
                     return Card(

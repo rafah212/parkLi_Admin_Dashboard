@@ -129,7 +129,7 @@ class _UsersPageState extends State<UsersPage> {
   Widget _buildUserCard(Map<String, dynamic> user, Color cardColor, Color textColor) {
     String? avatarUrl = user['avatars_url']; 
     
-    // تنسيق وتحديث أرقام الجوالات حياً بناءً على اللغة المختارة
+    // تحديث ارقام الجوال على حسب اللغة
     String displayPhone = AppData.formatNumbers(user['phone_number'] ?? AppData.translate("No Phone"));
 
     return Card(

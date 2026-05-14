@@ -13,7 +13,7 @@ class SettingsPage extends StatefulWidget {
 
 class _SettingsPageState extends State<SettingsPage> {
   final supabase = Supabase.instance.client;
-  String adminName = "Rafah Aljabri"; // تحديث الاسم المعتمد للأدمن
+  String adminName = "Rafah Aljabri"; // تحديث الاسم 
 
   Future<void> _sendEmail(String email) async {
     final Uri params = Uri(
@@ -42,7 +42,7 @@ class _SettingsPageState extends State<SettingsPage> {
     Color cardColor = AppData.isDarkMode ? const Color(0xFF1E1E1E) : Colors.white;
     Color textColor = AppData.isDarkMode ? Colors.white : const Color(0xFF195A64);
 
-    // استخدام المستمع الذكي لإعادة بناء الصفحة بالكامل وتغيير اتجاهها لحظة ضغط زر اللغة
+    // تغير الصفحه كلها على حسب اللغة
     return ValueListenableBuilder<bool>(
       valueListenable: AppData.languageNotifier,
       builder: (context, isArabic, child) {
@@ -68,7 +68,7 @@ class _SettingsPageState extends State<SettingsPage> {
                   child: ListTile(
                     leading: const CircleAvatar(
                       radius: 25,
-                      backgroundColor: Color(0xFFC8ACBB), // استخدام درجة الموف المعتمدة لهويتكم الأنيقة
+                      backgroundColor: Color(0xFFC8ACBB), 
                       child: Icon(Icons.person, color: Colors.white),
                     ),
                     title: Text(adminName, style: TextStyle(color: textColor, fontWeight: FontWeight.bold)),
@@ -102,7 +102,7 @@ class _SettingsPageState extends State<SettingsPage> {
                       ),
                       const Divider(height: 1, indent: 50),
                       
-                      // 🌐 الميزة الجديدة: زر تغيير اللغة والتحكم الفوري بالسيستم
+                      // زر تغيير اللغة والتحكم بالداشبورد
                       ListTile(
                         leading: Icon(Icons.language_outlined, color: textColor),
                         title: Text(AppData.translate("Language"), style: TextStyle(color: textColor)),
@@ -123,7 +123,7 @@ class _SettingsPageState extends State<SettingsPage> {
                           ],
                           onChanged: (bool? newValue) {
                             if (newValue != null) {
-                              // إخطار المنبه المركزي لتحديث كافة صفحات وقوائم الداشبورد فوراً
+                              //  المنبه المركزي لتحديث كافة صفحات وقوائم الداشبورد فوراً
                               AppData.languageNotifier.value = newValue;
                             }
                           },

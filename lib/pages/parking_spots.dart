@@ -12,16 +12,16 @@ class ParkingSpotsPage extends StatefulWidget {
 class _ParkingSpotsPageState extends State<ParkingSpotsPage> {
   final SupabaseClient supabase = Supabase.instance.client;
   
-  String? _selectedPlaceId; // لتخزين معرف الموقع المختار
-  List<Map<String, dynamic>> _placesList = []; // لتخزين قائمة المواقع حياً
+  String? _selectedPlaceId; // لتخزين الموقع المحدد
+  List<Map<String, dynamic>> _placesList = []; // لتخزين قائمة المواقع 
 
   @override
   void initState() {
     super.initState();
-    _fetchPlaces(); // جلب المواقع أول ما تفتح الصفحة لتغذية الـ Dropdown
+    _fetchPlaces(); // جلب المواقع أول ما تفتح الصفحة  Dropdown
   }
 
-  // دالة ذكية لسحب المواقع المتاحة في النظام
+  // دالة لسحب المواقع المتاحة في النظام
   Future<void> _fetchPlaces() async {
     try {
       final data = await supabase.from('places').select('id, name');
@@ -36,13 +36,13 @@ class _ParkingSpotsPageState extends State<ParkingSpotsPage> {
     }
   }
 
-  // دالة تحديد ألوان حالات المواقف بناءً على البليتة المعتمدة
+  // دالة تحديد ألوان حالات المواقف بناء على الأولوان المعتمدة
   Color _getStatusColor(String status) {
     switch (status.toLowerCase()) {
       case 'available': 
-        return const Color(0xFFC8D8C3); // الأخضر الفاتح المتاح
+        return const Color(0xFFC8D8C3); // الأخضر الفاتح متاح
       case 'occupied': 
-        return const Color.fromARGB(255, 127, 34, 48); // البرغندي/العنابي للممتلئ
+        return const Color.fromARGB(255, 127, 34, 48); //العنابي للممتلئ
       case 'reserved': 
         return AppData.isDarkMode ? Colors.orange.shade700 : Colors.orange.shade200; // البرتقالي للمحجوز
       default: 
@@ -75,7 +75,7 @@ class _ParkingSpotsPageState extends State<ParkingSpotsPage> {
             body: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // 🏢 شريط علوي أنيق لاختيار الموقع وتصفية المواقف بناءً عليه
+                //  لاختيار الموقع وتصفية المواقف بناءً عليه
                 Padding(
                   padding: const EdgeInsets.fromLTRB(24, 20, 24, 10),
                   child: Container(
@@ -115,12 +115,12 @@ class _ParkingSpotsPageState extends State<ParkingSpotsPage> {
                   ),
                 ),
 
-                // 🚗 شبكة عرض المواقف التابعة للموقع المختار حياً
+                //  عرض المواقف التابعة للموقع المختار 
                 Expanded(
                   child: _selectedPlaceId == null
                       ? const Center(child: CircularProgressIndicator())
                       : StreamBuilder<List<Map<String, dynamic>>>(
-                          // الاستعلام الذكي: نجلب المواقف اللي تطابق الـ place_id المختار بس!
+                          //جلب المواقف اللي تطابق  place_id المختار بس
                           stream: supabase
                               .from('parking_spots')
                               .stream(primaryKey: ['id'])

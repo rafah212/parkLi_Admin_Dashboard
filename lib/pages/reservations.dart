@@ -123,7 +123,7 @@ class _ReservationsPageState extends State<ReservationsPage> {
     DateTime bookedAt = DateTime.parse(booking['booked_at']);
     String formattedDate = DateFormat('yyyy-MM-dd – kk:mm').format(bookedAt);
     
-    // تنسيق وعكس الأرقام والتواريخ والرموز حياً حسب لغة السيستم
+    // تنسيق وعكس الأرقام والتواريخ والرموز حسب اللغة اللي اخترتها
     String displayDate = AppData.formatNumbers(formattedDate);
     String displaySpot = AppData.formatNumbers(booking['spot_label'] ?? 'N/A');
 
@@ -135,7 +135,7 @@ class _ReservationsPageState extends State<ReservationsPage> {
       decoration: BoxDecoration(
         color: cardColor,
         borderRadius: BorderRadius.circular(15),
-        // تعديل اتجاه الحدود الجانبية الملونة لتنعكس تلقائياً حسب اتجاه لغة الصفحة (يمين أو يسار)
+        //تعديل اتجاه الحدود الجانبية الملونة لتنعكس تلقائياً حسب اتجاه اللغة اللي اخترتها عربي يمين و انقليزي العكس
         border: Border(
           left: isArabic ? BorderSide.none : BorderSide(color: statusColor, width: 6),
           right: isArabic ? BorderSide(color: statusColor, width: 6) : BorderSide.none,

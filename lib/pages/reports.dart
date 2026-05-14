@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'dart:convert';
-import 'package:universal_html/html.dart' as html; // مكتبة مدمجة وآمنة للتحميل المباشر على المتصفح واللاب توب
+import 'package:universal_html/html.dart' as html; // للتحميل
 import '../app_data.dart';
 
 class ReportsPage extends StatelessWidget {
   const ReportsPage({super.key});
 
-  // 📊 دالة سحرية لتوليد وتحميل ملف الـ CSV حياً بناءً على بيانات المواقف الحالية من سوبابيس
+  // تحميل من قاعدة البيانات csv
   Future<void> _exportToCSV(BuildContext context, List<Map<String, dynamic>> spotsData) async {
     try {
-      // بناء رأس الجدول والبيانات
+      // الجدول والبيانات
       List<List<dynamic>> rows = [
         ["Spot ID", "Spot Name", "Zone/Place ID", "Current Status", "Last Updated"]
       ];
@@ -25,13 +25,13 @@ class ReportsPage extends StatelessWidget {
         ]);
       }
 
-      // تحويل المصفوفات إلى نص CSV منظم
+      // تحويل المصفوفات إلى نص CSV 
       String csvContent = const JsonEncoder().convert(rows)
           .replaceAll('[', '')
           .replaceAll(']', '\n')
           .replaceAll('"', '');
 
-      // تجهيز الرابط السري وتحميل الملف فوراً على جهاز المستخدم
+      // تجهيز الرابط  وتحميل الملف على جهاز الادمن
       final bytes = utf8.encode(csvContent);
       final blob = html.Blob([bytes], 'text/csv;charset=utf-8');
       final url = html.Url.createObjectUrlFromBlob(blob);
@@ -50,10 +50,10 @@ class ReportsPage extends StatelessWidget {
     }
   }
 
-  // 📄 دالة ذكية لإطلاق أمر الطباعة المدمج بالسيستم لحفظ الصفحة كـ PDF أنيق بلمحة عين
+  // ايقونة الحفظ بيصغة pdf
   void _exportToPDF(BuildContext context) {
     try {
-      html.window.print(); // تفتح نافذة الطباعة الرسمية للوندوز/الماك واختيار الحفظ كـ PDF
+      html.window.print(); //طبعا اللي يطلع عشان يحفظه بي دي اف هي الصفحة اللي تظهر قدامه مو البيانات اللي تحفظ البيانات بصيغة  csv
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("Error launching PDF printer: $e")),
@@ -79,9 +79,9 @@ class ReportsPage extends StatelessWidget {
         backgroundColor: cardColor,
         elevation: 0,
         centerTitle: true,
-        // أزرار الحفظ الفوري المضافة في شريط الصفحة فوق بصياغة مذهلة
+        // ازرار الحفظ لل pdb - csv
         actions: [
-          // 1. زر تحميل الـ PDF المطور
+          //   تحميل  PDF 
           StreamBuilder<List<Map<String, dynamic>>>(
             stream: supabase.from('parking_spots').stream(primaryKey: ['id']),
             builder: (context, snapshot) {
@@ -94,7 +94,7 @@ class ReportsPage extends StatelessWidget {
               );
             }
           ),
-          // 2. زر تحميل الـ CSV المطور
+          //   تحميل CSV 
           StreamBuilder<List<Map<String, dynamic>>>(
             stream: supabase.from('parking_spots').stream(primaryKey: ['id']),
             builder: (context, snapshot) {
@@ -166,7 +166,7 @@ class ReportsPage extends StatelessWidget {
         stream: supabase.from(table).stream(primaryKey: ['id']),
         builder: (context, snapshot) {
           int count = snapshot.hasData ? snapshot.data!.length : 0;
-          // تنسيق الأرقام حياً لتتبع إعدادات اللغة المختارة
+          // تنسيق الأرقام للغة اللي مختارتها 
           String displayCount = AppData.formatNumbers(count.toString());
           
           return Container(
