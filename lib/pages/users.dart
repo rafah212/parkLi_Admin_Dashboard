@@ -18,9 +18,9 @@ class _UsersPageState extends State<UsersPage> {
       
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text("User deleted successfully"),
-            backgroundColor: Color(0xFF195A64),
+          SnackBar(
+            content: Text(AppData.translate("User deleted successfully")),
+            backgroundColor: const Color(0xFF195A64),
           ),
         );
       }
@@ -28,7 +28,7 @@ class _UsersPageState extends State<UsersPage> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text("Error: $e"), 
+            content: Text("${AppData.translate('Error')}: $e"), 
             backgroundColor: Colors.red,
           ),
         );
@@ -39,24 +39,37 @@ class _UsersPageState extends State<UsersPage> {
   void _showDeleteDialog(String userId, String userName) {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text("Confirm Deletion"),
-        content: Text("Are you sure you want to delete $userName?\nAll associated data will be removed."),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text("Cancel", style: TextStyle(color: Colors.grey)),
-          ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-            onPressed: () {
-              Navigator.pop(context);
-              _deleteUser(userId);
-            },
-            child: const Text("Delete", style: TextStyle(color: Colors.white)),
-          ),
-        ],
-      ),
+      builder: (context) {
+        return ValueListenableBuilder<bool>(
+          valueListenable: AppData.languageNotifier,
+          builder: (context, isArabic, child) {
+            return Directionality(
+              textDirection: isArabic ? TextDirection.rtl : TextDirection.ltr,
+              child: AlertDialog(
+                backgroundColor: AppData.isDarkMode ? const Color(0xFF1E1E1E) : Colors.white,
+                title: Text(AppData.translate("Confirm Deletion")),
+                content: Text(
+                  "${AppData.translate('Are you sure you want to delete')} $userName?\n${AppData.translate('All associated data will be removed.')}"
+                ),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: Text(AppData.translate("Cancel"), style: const TextStyle(color: Colors.grey)),
+                  ),
+                  ElevatedButton(
+                    style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+                    onPressed: () {
+                      Navigator.pop(context);
+                      _deleteUser(userId);
+                    },
+                    child: Text(AppData.translate("Delete"), style: const TextStyle(color: Colors.white)),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
     );
   }
 
@@ -66,38 +79,58 @@ class _UsersPageState extends State<UsersPage> {
     Color cardColor = AppData.isDarkMode ? const Color(0xFF1E1E1E) : Colors.white;
     Color textColor = AppData.isDarkMode ? Colors.white : const Color(0xFF195A64);
 
-    return Scaffold(
-      backgroundColor: bgColor,
-      appBar: AppBar(
-        title: Text("Users Management", 
-          style: TextStyle(color: textColor, fontWeight: FontWeight.bold)),
-        backgroundColor: cardColor,
-        elevation: 0,
-        centerTitle: true,
-      ),
-      body: StreamBuilder<List<Map<String, dynamic>>>(
-        stream: supabase.from('profiles').stream(primaryKey: ['id']).order('created_at'),
-        builder: (context, snapshot) {
-          if (snapshot.hasError) return Center(child: Text("Error: ${snapshot.error}", style: TextStyle(color: textColor)));
-          if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
+    return ValueListenableBuilder<bool>(
+      valueListenable: AppData.languageNotifier,
+      builder: (context, isArabic, child) {
+        return Directionality(
+          textDirection: isArabic ? TextDirection.rtl : TextDirection.ltr,
+          child: Scaffold(
+            backgroundColor: bgColor,
+            appBar: AppBar(
+              title: Text(
+                AppData.translate("Users Management"), 
+                style: TextStyle(color: textColor, fontWeight: FontWeight.bold),
+              ),
+              backgroundColor: cardColor,
+              elevation: 0,
+              centerTitle: true,
+            ),
+            body: StreamBuilder<List<Map<String, dynamic>>>(
+              stream: supabase.from('profiles').stream(primaryKey: ['id']).order('created_at'),
+              builder: (context, snapshot) {
+                if (snapshot.hasError) {
+                  return Center(
+                    child: Text(
+                      "${AppData.translate('Error')}: ${snapshot.error}", 
+                      style: TextStyle(color: textColor),
+                    ),
+                  );
+                }
+                if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
 
-          final users = snapshot.data!;
+                final users = snapshot.data!;
 
-          return ListView.builder(
-            padding: const EdgeInsets.all(24),
-            itemCount: users.length,
-            itemBuilder: (context, index) {
-              final user = users[index];
-              return _buildUserCard(user, cardColor, textColor);
-            },
-          );
-        },
-      ),
+                return ListView.builder(
+                  padding: const EdgeInsets.all(24),
+                  itemCount: users.length,
+                  itemBuilder: (context, index) {
+                    final user = users[index];
+                    return _buildUserCard(user, cardColor, textColor);
+                  },
+                );
+              },
+            ),
+          ),
+        );
+      },
     );
   }
 
   Widget _buildUserCard(Map<String, dynamic> user, Color cardColor, Color textColor) {
     String? avatarUrl = user['avatars_url']; 
+    
+    // تنسيق وتحديث أرقام الجوالات حياً بناءً على اللغة المختارة
+    String displayPhone = AppData.formatNumbers(user['phone_number'] ?? AppData.translate("No Phone"));
 
     return Card(
       color: cardColor,
@@ -118,8 +151,10 @@ class _UsersPageState extends State<UsersPage> {
                 )
               : null,
         ),
-        title: Text(user['full_name'] ?? "Unknown User", 
-          style: TextStyle(fontWeight: FontWeight.bold, color: textColor)),
+        title: Text(
+          user['full_name'] ?? AppData.translate("Unknown User"), 
+          style: TextStyle(fontWeight: FontWeight.bold, color: textColor),
+        ),
         subtitle: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -128,21 +163,22 @@ class _UsersPageState extends State<UsersPage> {
               children: [
                 const Icon(Icons.email_outlined, size: 14, color: Colors.grey),
                 const SizedBox(width: 5),
-                Text(user['email'] ?? "No Email", style: const TextStyle(color: Colors.grey, fontSize: 13)),
+                Text(user['email'] ?? AppData.translate("No Email"), style: const TextStyle(color: Colors.grey, fontSize: 13)),
               ],
             ),
+            const SizedBox(height: 2),
             Row(
               children: [
                 const Icon(Icons.phone_outlined, size: 14, color: Colors.grey),
                 const SizedBox(width: 5),
-                Text(user['phone_number'] ?? "No Phone", style: const TextStyle(color: Colors.grey, fontSize: 13)),
+                Text(displayPhone, style: const TextStyle(color: Colors.grey, fontSize: 13)),
               ],
             ),
           ],
         ),
         trailing: IconButton(
           icon: const Icon(Icons.delete_outline, color: Colors.redAccent),
-          onPressed: () => _showDeleteDialog(user['id'], user['full_name'] ?? "User"),
+          onPressed: () => _showDeleteDialog(user['id'], user['full_name'] ?? AppData.translate("User")),
         ),
       ),
     );

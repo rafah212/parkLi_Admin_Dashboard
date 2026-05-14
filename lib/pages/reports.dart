@@ -1,9 +1,65 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'dart:convert';
+import 'package:universal_html/html.dart' as html; // مكتبة مدمجة وآمنة للتحميل المباشر على المتصفح واللاب توب
 import '../app_data.dart';
 
 class ReportsPage extends StatelessWidget {
   const ReportsPage({super.key});
+
+  // 📊 دالة سحرية لتوليد وتحميل ملف الـ CSV حياً بناءً على بيانات المواقف الحالية من سوبابيس
+  Future<void> _exportToCSV(BuildContext context, List<Map<String, dynamic>> spotsData) async {
+    try {
+      // بناء رأس الجدول والبيانات
+      List<List<dynamic>> rows = [
+        ["Spot ID", "Spot Name", "Zone/Place ID", "Current Status", "Last Updated"]
+      ];
+
+      for (var spot in spotsData) {
+        rows.add([
+          spot['id'] ?? '',
+          spot['name'] ?? spot['number'] ?? '',
+          spot['place_id'] ?? '',
+          spot['status'] ?? 'Available',
+          spot['updated_at'] ?? ''
+        ]);
+      }
+
+      // تحويل المصفوفات إلى نص CSV منظم
+      String csvContent = const JsonEncoder().convert(rows)
+          .replaceAll('[', '')
+          .replaceAll(']', '\n')
+          .replaceAll('"', '');
+
+      // تجهيز الرابط السري وتحميل الملف فوراً على جهاز المستخدم
+      final bytes = utf8.encode(csvContent);
+      final blob = html.Blob([bytes], 'text/csv;charset=utf-8');
+      final url = html.Url.createObjectUrlFromBlob(blob);
+      final anchor = html.AnchorElement(href: url)
+        ..setAttribute("download", "ParkLi_Occupancy_Report_${DateTime.now().millisecondsSinceEpoch}.csv")
+        ..click();
+      html.Url.revokeObjectUrl(url);
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(AppData.translate("CSV Report downloaded successfully!"))),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Error exporting CSV: $e")),
+      );
+    }
+  }
+
+  // 📄 دالة ذكية لإطلاق أمر الطباعة المدمج بالسيستم لحفظ الصفحة كـ PDF أنيق بلمحة عين
+  void _exportToPDF(BuildContext context) {
+    try {
+      html.window.print(); // تفتح نافذة الطباعة الرسمية للوندوز/الماك واختيار الحفظ كـ PDF
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Error launching PDF printer: $e")),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -16,25 +72,63 @@ class ReportsPage extends StatelessWidget {
     return Scaffold(
       backgroundColor: bgColor,
       appBar: AppBar(
-        title: Text("System Analytics", 
-          style: TextStyle(color: textColor, fontWeight: FontWeight.bold)),
+        title: Text(
+          AppData.translate("System Analytics"), 
+          style: TextStyle(color: textColor, fontWeight: FontWeight.bold),
+        ),
         backgroundColor: cardColor,
         elevation: 0,
         centerTitle: true,
+        // أزرار الحفظ الفوري المضافة في شريط الصفحة فوق بصياغة مذهلة
+        actions: [
+          // 1. زر تحميل الـ PDF المطور
+          StreamBuilder<List<Map<String, dynamic>>>(
+            stream: supabase.from('parking_spots').stream(primaryKey: ['id']),
+            builder: (context, snapshot) {
+              final spots = snapshot.hasData ? snapshot.data! : <Map<String, dynamic>>[];
+              return IconButton(
+                icon: const Icon(Icons.insert_drive_file_outlined),
+                tooltip: AppData.translate("Export PDF"),
+                color: textColor,
+                onPressed: () => _exportToPDF(context),
+              );
+            }
+          ),
+          // 2. زر تحميل الـ CSV المطور
+          StreamBuilder<List<Map<String, dynamic>>>(
+            stream: supabase.from('parking_spots').stream(primaryKey: ['id']),
+            builder: (context, snapshot) {
+              final spots = snapshot.hasData ? snapshot.data! : <Map<String, dynamic>>[];
+              return IconButton(
+                icon: const Icon(Icons.grid_on_outlined),
+                tooltip: AppData.translate("Export CSV"),
+                color: textColor,
+                onPressed: spots.isEmpty ? null : () => _exportToCSV(context, spots),
+              );
+            }
+          ),
+          const SizedBox(width: 8),
+        ],
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text("Quick Summary", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: textColor)),
+            Text(
+              AppData.translate("Quick Summary"), 
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: textColor),
+            ),
             const SizedBox(height: 20),
             
             _buildLiveStatCards(supabase, textColor, cardColor),
 
             const SizedBox(height: 35),
 
-            Text("Live Occupancy Rate", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: textColor)),
+            Text(
+              AppData.translate("Live Occupancy Rate"), 
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: textColor),
+            ),
             const SizedBox(height: 20),
             
             _buildOccupancySection(supabase, cardColor, textColor),
@@ -72,6 +166,8 @@ class ReportsPage extends StatelessWidget {
         stream: supabase.from(table).stream(primaryKey: ['id']),
         builder: (context, snapshot) {
           int count = snapshot.hasData ? snapshot.data!.length : 0;
+          // تنسيق الأرقام حياً لتتبع إعدادات اللغة المختارة
+          String displayCount = AppData.formatNumbers(count.toString());
           
           return Container(
             padding: const EdgeInsets.all(20),
@@ -83,9 +179,12 @@ class ReportsPage extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(title, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: textColor.withOpacity(0.7))),
+                Text(
+                  AppData.translate(title), 
+                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: textColor.withOpacity(0.7)),
+                ),
                 const SizedBox(height: 10),
-                Text(count.toString(), style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold, color: textColor)),
+                Text(displayCount, style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold, color: textColor)),
               ],
             ),
           );
@@ -106,7 +205,9 @@ class ReportsPage extends StatelessWidget {
         stream: supabase.from('parking_spots').stream(primaryKey: ['id']),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) return const LinearProgressIndicator();
-          if (!snapshot.hasData || snapshot.data!.isEmpty) return const Center(child: Text("No tracking data available"));
+          if (!snapshot.hasData || snapshot.data!.isEmpty) {
+            return Center(child: Text(AppData.translate("No tracking data available")));
+          }
           
           final allSpots = snapshot.data!;
           final total = allSpots.length;
@@ -115,7 +216,10 @@ class ReportsPage extends StatelessWidget {
           final available = total - occupied;
           
           double percent = total > 0 ? (occupied / total) : 0.0;
-          String displayPercent = (percent * 100).toStringAsFixed(1);
+          String displayPercent = AppData.formatNumbers((percent * 100).toStringAsFixed(1));
+
+          String displayAvailable = AppData.formatNumbers(available.toString());
+          String displayOccupied = AppData.formatNumbers(occupied.toString());
 
           return Column(
             children: [
@@ -125,9 +229,12 @@ class ReportsPage extends StatelessWidget {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text("Live Status", style: TextStyle(color: Colors.grey, fontSize: 13)),
+                      Text(AppData.translate("Live Status"), style: const TextStyle(color: Colors.grey, fontSize: 13)),
                       const SizedBox(height: 4),
-                      Text("$available Free Spots", style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.green)),
+                      Text(
+                        "$displayAvailable ${AppData.translate('Free Spots')}", 
+                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.green),
+                      ),
                     ],
                   ),
                   Text("$displayPercent%", style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: textColor)),
@@ -140,7 +247,6 @@ class ReportsPage extends StatelessWidget {
                   value: percent,
                   minHeight: 15,
                   backgroundColor: AppData.isDarkMode ? Colors.white10 : const Color(0xFFF0F0F0),
-                  // خليت اللون الخط يتغير اذا قربت المواقف تمتلي
                   valueColor: AlwaysStoppedAnimation<Color>(percent > 0.8 ? Colors.red : const Color(0xFF195A64)),
                 ),
               ),
@@ -148,9 +254,12 @@ class ReportsPage extends StatelessWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  _buildLegend(Colors.green, "Available: $available"),
+                  _buildLegend(Colors.green, "${AppData.translate('Available')}: $displayAvailable"),
                   const SizedBox(width: 20),
-                  _buildLegend(percent > 0.8 ? Colors.red : const Color(0xFF195A64), "Occupied: $occupied"),
+                  _buildLegend(
+                    percent > 0.8 ? Colors.red : const Color(0xFF195A64), 
+                    "${AppData.translate('Occupied')}: $displayOccupied",
+                  ),
                 ],
               ),
             ],

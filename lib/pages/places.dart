@@ -15,7 +15,6 @@ class _PlacesPageState extends State<PlacesPage> {
   final _nameController = TextEditingController();
   final _priceController = TextEditingController();
   
-  // عشان اقدر الغي قبل ينتهي الوقت
   Timer? _deleteTimer;
 
   Future<int> _getSpotsCount(String placeId) async {
@@ -26,7 +25,7 @@ class _PlacesPageState extends State<PlacesPage> {
     return (response as List).length;
   }
 
-  // الحذف و حطيت عد تنازلي 5 ثواني 
+  // دالة الحذف الذكية مع عد تنازلي وتدعم اللغتين والأرقام حياً بالـ SnackBar
   void _confirmDelete(String placeId, String placeName) async {
     int spotsCount = await _getSpotsCount(placeId);
     bool isCancelled = false;
@@ -35,18 +34,23 @@ class _PlacesPageState extends State<PlacesPage> {
 
     ScaffoldMessenger.of(context).hideCurrentSnackBar();
     
-    // التراجع عن الحذف قبل الخمس ثواني
+    String displayCount = AppData.formatNumbers(spotsCount.toString());
+
     final snackBar = SnackBar(
       content: Row(
         children: [
           const CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
           const SizedBox(width: 15),
-          Expanded(child: Text("Deleting '$placeName' ($spotsCount spots) in 5s...")),
+          Expanded(
+            child: Text(
+              "${AppData.translate('Deleting')} '$placeName' ($displayCount ${AppData.translate('spots')}) ${AppData.translate('in 5s...')}"
+            ),
+          ),
         ],
       ),
       duration: const Duration(seconds: 5),
       action: SnackBarAction(
-        label: "UNDO",
+        label: AppData.translate("UNDO"),
         textColor: Colors.yellow,
         onPressed: () {
           isCancelled = true;
@@ -63,13 +67,13 @@ class _PlacesPageState extends State<PlacesPage> {
           await supabase.from('places').delete().match({'id': placeId});
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text("Place deleted successfully")),
+              SnackBar(content: Text(AppData.translate("Place deleted successfully"))),
             );
           }
         } catch (e) {
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text("Error: $e"), backgroundColor: Colors.red),
+              SnackBar(content: Text("${AppData.translate('Error')}: $e"), backgroundColor: Colors.red),
             );
           }
         }
@@ -83,94 +87,143 @@ class _PlacesPageState extends State<PlacesPage> {
     Color cardColor = AppData.isDarkMode ? const Color(0xFF1E1E1E) : Colors.white;
     Color textColor = AppData.isDarkMode ? Colors.white : const Color(0xFF195A64);
 
-    return Scaffold(
-      backgroundColor: bgColor,
-      appBar: AppBar(
-        title: Text("Manage Places", style: TextStyle(color: textColor, fontWeight: FontWeight.bold)),
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        centerTitle: true,
-      ),
-      body: StreamBuilder<List<Map<String, dynamic>>>(
-        stream: supabase.from('places').stream(primaryKey: ['id']),
-        builder: (context, snapshot) {
-          if (snapshot.hasError) return Center(child: Text("Error: ${snapshot.error}"));
-          if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
+    return ValueListenableBuilder<bool>(
+      valueListenable: AppData.languageNotifier,
+      builder: (context, isArabic, child) {
+        return Directionality(
+          textDirection: isArabic ? TextDirection.rtl : TextDirection.ltr,
+          child: Scaffold(
+            backgroundColor: bgColor,
+            appBar: AppBar(
+              title: Text(
+                AppData.translate("Manage Places"), 
+                style: TextStyle(color: textColor, fontWeight: FontWeight.bold),
+              ),
+              backgroundColor: Colors.transparent,
+              elevation: 0,
+              centerTitle: true,
+            ),
+            body: StreamBuilder<List<Map<String, dynamic>>>(
+              stream: supabase.from('places').stream(primaryKey: ['id']),
+              builder: (context, snapshot) {
+                if (snapshot.hasError) return Center(child: Text("${AppData.translate('Error')}: ${snapshot.error}"));
+                if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
 
-          final places = snapshot.data!;
-          if (places.isEmpty) return Center(child: Text("No places found.", style: TextStyle(color: textColor)));
+                final places = snapshot.data!;
+                if (places.isEmpty) {
+                  return Center(
+                    child: Text(
+                      AppData.translate("No places found."), 
+                      style: TextStyle(color: textColor),
+                    ),
+                  );
+                }
 
-          return ListView.builder(
-            padding: const EdgeInsets.all(20),
-            itemCount: places.length,
-            itemBuilder: (context, index) {
-              final place = places[index];
-              return Card(
-                color: cardColor,
-                margin: const EdgeInsets.only(bottom: 12),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                child: ListTile(
-                  leading: const Icon(Icons.location_on, color: Color(0xFF195A64)),
-                  title: Text(place['name'] ?? 'Unnamed', style: TextStyle(fontWeight: FontWeight.bold, color: textColor)),
-                  subtitle: Text("Price: ${place['price_label'] ?? 'N/A'}", style: const TextStyle(color: Colors.grey)),
-                  trailing: IconButton(
-                    icon: const Icon(Icons.delete_outline, color: Colors.red),
-                    onPressed: () => _confirmDelete(place['id'], place['name'] ?? ""),
-                  ),
-                ),
-              );
-            },
-          );
-        },
-      ),
-      floatingActionButton: FloatingActionButton(
-        backgroundColor: const Color(0xFF195A64),
-        child: const Icon(Icons.add, color: Colors.white),
-        onPressed: () => _showAddPlaceDialog(cardColor, textColor),
-      ),
+                return ListView.builder(
+                  padding: const EdgeInsets.all(20),
+                  itemCount: places.length,
+                  itemBuilder: (context, index) {
+                    final place = places[index];
+                    
+                    // دعم تنسيق السعر حياً للأرقام العربية إذا تم تحويل الواجهة
+                    String displayPrice = AppData.formatNumbers(place['price_label'] ?? 'N/A');
+
+                    return Card(
+                      color: cardColor,
+                      margin: const EdgeInsets.only(bottom: 12),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      child: ListTile(
+                        leading: const Icon(Icons.location_on, color: Color(0xFF195A64)),
+                        title: Text(
+                          place['name'] ?? AppData.translate('Unnamed'), 
+                          style: TextStyle(fontWeight: FontWeight.bold, color: textColor),
+                        ),
+                        subtitle: Text(
+                          "${AppData.translate('Price')}: $displayPrice", 
+                          style: const TextStyle(color: Colors.grey),
+                        ),
+                        trailing: IconButton(
+                          icon: const Icon(Icons.delete_outline, color: Colors.red),
+                          onPressed: () => _confirmDelete(place['id'], place['name'] ?? ""),
+                        ),
+                      ),
+                    );
+                  },
+                );
+              },
+            ),
+            floatingActionButton: FloatingActionButton(
+              backgroundColor: const Color(0xFF195A64),
+              child: const Icon(Icons.add, color: Colors.white),
+              onPressed: () => _showAddPlaceDialog(cardColor, textColor),
+            ),
+          ),
+        );
+      },
     );
   }
 
   void _showAddPlaceDialog(Color cardColor, Color textColor) {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: cardColor,
-        title: Text("Add New Place", style: TextStyle(color: textColor)),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              controller: _nameController,
-              style: TextStyle(color: textColor),
-              decoration: InputDecoration(labelText: "Place Name", labelStyle: const TextStyle(color: Colors.grey)),
-            ),
-            TextField(
-              controller: _priceController,
-              style: TextStyle(color: textColor),
-              decoration: InputDecoration(labelText: "Price (e.g. 10 SAR/h)", labelStyle: const TextStyle(color: Colors.grey)),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text("Cancel")),
-          ElevatedButton(
-            onPressed: () async {
-              if (_nameController.text.isEmpty || _priceController.text.isEmpty) return;
-              await supabase.from('places').insert({
-                'name': _nameController.text,
-                'price_label': _priceController.text,
-                'id': _nameController.text.toLowerCase().replaceAll(' ', '_'), // توليد ID بسيط
-              });
-              _nameController.clear();
-              _priceController.clear();
-              if (mounted) Navigator.pop(context);
-            },
-            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF195A64)),
-            child: const Text("Save", style: TextStyle(color: Colors.white)),
-          ),
-        ],
-      ),
+      builder: (context) {
+        return ValueListenableBuilder<bool>(
+          valueListenable: AppData.languageNotifier,
+          builder: (context, isArabic, child) {
+            return Directionality(
+              textDirection: isArabic ? TextDirection.rtl : TextDirection.ltr,
+              child: AlertDialog(
+                backgroundColor: cardColor,
+                title: Text(AppData.translate("Add New Place"), style: TextStyle(color: textColor)),
+                content: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    TextField(
+                      controller: _nameController,
+                      style: TextStyle(color: textColor),
+                      decoration: InputDecoration(
+                        labelText: AppData.translate("Place Name"), 
+                        labelStyle: const TextStyle(color: Colors.grey),
+                        enabledBorder: const UnderlineInputBorder(borderSide: BorderSide(color: Colors.grey)),
+                      ),
+                    ),
+                    TextField(
+                      controller: _priceController,
+                      style: TextStyle(color: textColor),
+                      decoration: InputDecoration(
+                        labelText: AppData.translate("Price (e.g. 10 SAR/h)"), 
+                        labelStyle: const TextStyle(color: Colors.grey),
+                        enabledBorder: const UnderlineInputBorder(borderSide: BorderSide(color: Colors.grey)),
+                      ),
+                    ),
+                  ],
+                ),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(context), 
+                    child: Text(AppData.translate("Cancel"), style: const TextStyle(color: Colors.grey)),
+                  ),
+                  ElevatedButton(
+                    onPressed: () async {
+                      if (_nameController.text.isEmpty || _priceController.text.isEmpty) return;
+                      await supabase.from('places').insert({
+                        'name': _nameController.text,
+                        'price_label': _priceController.text,
+                        'id': _nameController.text.toLowerCase().replaceAll(' ', '_'),
+                      });
+                      _nameController.clear();
+                      _priceController.clear();
+                      if (mounted) Navigator.pop(context);
+                    },
+                    style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF195A64)),
+                    child: Text(AppData.translate("Save"), style: const TextStyle(color: Colors.white)),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
     );
   }
 }

@@ -37,7 +37,7 @@ class _LoginPageState extends State<LoginPage> {
     }
 
     if (password == "ParkLi2026") { 
-      String adminName = email == 'rafahsaljabri@gmail.com' ? 'Rafah' : 'Asayl';
+      String adminName = email == 'rafahsaljabri@gmail.com' ? 'Rafah' : 'Asayl' ; 'Norah' ; 'Mona' ; 'Ghd'; // تخصيص اسم الترحيب حسب الإيميل
       
       Navigator.pushReplacement(
         context,
